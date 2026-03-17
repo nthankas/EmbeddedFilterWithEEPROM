@@ -48,7 +48,7 @@ int main(void) {
             }
             else if (testpack.ID == ID_NVM_READ_PAGE) {
                 // Payload: bytes 0-3 = address.
-                unsigned int deviceRegisterAddr = ((unsigned int)testpack.payLoad[0] << 32) |
+                unsigned int deviceRegisterAddr = ((unsigned int)testpack.payLoad[0] << 24) |
                                                   ((unsigned int)testpack.payLoad[1] << 16) |
                                                   ((unsigned int)testpack.payLoad[2] << 8)  |
                                                   ((unsigned int)testpack.payLoad[3]);

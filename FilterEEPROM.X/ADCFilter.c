@@ -204,12 +204,12 @@ int main(void) {
         if ((ms - last) >= 1000) {
             ADCReadings[0] = Protocol_ShortEndednessConversion(ADCFilter_RawReading(currChan));
             ADCReadings[1] = Protocol_ShortEndednessConversion(ADCFilter_FilteredReading(currChan));
-            unsigned char rdn[2];
-            rdn[3] = (ADCReadings[0] >> 8) & 0x00FF;
-            rdn[2] = (ADCReadings[0]) & 0x00FF;
-            rdn[1] = (ADCReadings[1] >> 8) & 0x00FF;
-            rdn[0] = (ADCReadings[1]) & 0x00FF;
-            Protocol_SendPacket(32, ID_ADC_READING, rdn);
+            unsigned char rdn[4];
+            rdn[0] = (ADCReadings[0] >> 8) & 0xFF;
+            rdn[1] = (ADCReadings[0]) & 0xFF;
+            rdn[2] = (ADCReadings[1] >> 8) & 0xFF;
+            rdn[3] = (ADCReadings[1]) & 0xFF;
+            Protocol_SendPacket(4, ID_ADC_READING, rdn);
             last = ms;
             
       }

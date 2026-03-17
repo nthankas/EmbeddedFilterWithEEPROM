@@ -4,10 +4,7 @@
 #include "BOARD.h"
 #include "uart.h"
 #include "MessageIDs.h"
-// #include "RCServo.h"
 #include "ADCFilter.h"
-
-// #define test
 
 // Private Functions
 
@@ -49,9 +46,6 @@ uint8_t BuildRxPacket(packet* rxPacket, unsigned char reset) {
             case HEADD:
                 if (val == HEAD) {
                     packetBuilderState = LEN;
-//                    char haha[100];
-//                    sprintf(haha, "Head = %u", val);
-//                    Protocol_SendDebugMessage(haha);
                 }
                 break;
             case LEN:
@@ -72,9 +66,6 @@ uint8_t BuildRxPacket(packet* rxPacket, unsigned char reset) {
                    rxPacket->ID = val;
                    packetBuilderIndex = 0;
                    packetBuilderState = rxPacket->len == 1 ? TAILL : PAYLOAD;
-//                   char haha2[100];
-//                    sprintf(haha2, "ID = %u", val);
-//                    Protocol_SendDebugMessage(haha2);
                 break;
             case PAYLOAD:
                 rxPacket->payLoad[packetBuilderIndex] = val;
@@ -83,17 +74,11 @@ uint8_t BuildRxPacket(packet* rxPacket, unsigned char reset) {
                 if (packetBuilderIndex >= rxPacket->len - 1) {
                     packetBuilderState = TAILL;
                 }
-//                char haha3[100];
-//                    sprintf(haha3, "Pl = %u", val);
-//                    Protocol_SendDebugMessage(haha3);
                 break;
             case TAILL:
                 if (val == TAIL) {
                     packetBuilderState = CHECKSUM;
                 } else {
-//                    char haha4[100];
-//                    sprintf(haha4, "invalid tail = %u", val);
-//                    Protocol_SendDebugMessage(haha4);
                     packetBuilderState = HEADD;
                     Protocol_SendDebugMessage("Invalid tail received while building packet");
                 }
@@ -239,28 +224,6 @@ uint8_t Protocol_ParsePacket(packet packet) {
               }
         case ID_PONG:
             break;
-//        case ID_COMMAND_SERVO_PULSE:
-//                {uint32_t pulser =
-//                            ((uint32_t)packet.payLoad[3]) |
-//                            ((uint32_t)packet.payLoad[2] << 8) |
-//                            ((uint32_t)packet.payLoad[1] << 16) |
-//                            ((uint32_t)packet.payLoad[0] << 24);
-////                char debugger20[200];
-////                sprintf(debugger20, "Pulse length: %u", pulser);
-////                Protocol_SendDebugMessage(debugger20);
-//                
-//                RCServo_SetPulse(pulser);
-//                pulser = RCServo_GetPulse();
-//                
-//                unsigned char serv[4];
-//                
-//                serv[0] = (pulser >> 24) & 0xFF;
-//                serv[1] = (pulser >> 16) & 0xFF;
-//                serv[2] = (pulser >> 8) & 0xFF;
-//                serv[3] = (pulser) & 0xFF;
-//                Protocol_SendPacket(4, ID_SERVO_RESPONSE, &serv);
-//                break;
-//            }
         default:
             break;
     }
@@ -290,83 +253,3 @@ unsigned int Protocol_IntEndednessConversion(unsigned int inVariable) {
     return (Protocol_ShortEndednessConversion(b) << 16) | Protocol_ShortEndednessConversion((inVariable & 0xFFFF0000) >> 16);
 }
 
-// tester
-
-#ifdef test
-
-int main() {
-    
-    BOARD_Init();
-    
-    Protocol_Init(115200);
-    
-    packet testpack = {0};
-    
-    while(1){
-        
-        if(BuildRxPacket(&testpack, 0)){
-            
-            if (testpack.ID == ID_LEDS_GET){
-                uint8_t leds = LEDS_GET();
-                Protocol_SendPacket(1, ID_LEDS_STATE, &leds);
-            }
-            else if (testpack.ID == ID_LEDS_SET){
-                LEDS_SET(*testpack.payLoad);
-            }
-            else if (Protocol_QueuePacket(testpack)){
-                Protocol_SendDebugMessage("Packet Queue full");
-            }
-        }
-        
-        packet* inpack;
-        if (Protocol_GetInPacket(&inpack)){
-            Protocol_ParsePacket(*inpack);
-        }
-        
-        int i;
-        for (i = 0; i < 100000; i++) {
-            asm("nop");
-        }
-
-    
-//    uint8_t hardcodedPacket[] = {
-//        0xCC,       // HEAD
-//        0x02,       // LEN (payload + ID)
-//        ID_LEDS_SET, // ID
-//        0x01,       // PAYLOAD
-//        0xB9,       // TAIL
-//        0x00,       // CHECKSUM (placeholder, will be calculated)
-//        0x0D,       // END1
-//        0x0A        // END2
-//    };
-//
-//    // Calculate the checksum
-//    hardcodedPacket[5] = Protocol_CalcIterativeChecksum(hardcodedPacket[2], 0); // Checksum for ID
-//    hardcodedPacket[5] = Protocol_CalcIterativeChecksum(hardcodedPacket[3], hardcodedPacket[5]); // Checksum for payload
-//
-//    // Create a packet structure to hold the decoded packet
-//    packet rxPacket;
-//    memset(&rxPacket, 0, sizeof(packet));
-//
-//    // Simulate feeding the hardcoded packet into BuildRxPacket
-//    for (int i = 0; i < sizeof(hardcodedPacket); i++) {
-//        uint8_t val = hardcodedPacket[i];
-//        if (BuildRxPacket(&rxPacket, 0)) {
-//            Protocol_SendDebugMessage("Packet decoded successfully!");
-//            break;
-//        }
-//    }
-//
-//    // Print the decoded packet for verification
-//    Protocol_SendDebugMessage("Decoded Packet:");
-//    Protocol_SendDebugMessage("ID: ");
-//    Protocol_SendDebugMessage((char*)rxPacket.ID);
-//    Protocol_SendDebugMessage("Payload: ");
-//    Protocol_SendDebugMessage((char*)rxPacket.payLoad[0]);
-// 
-//    
-
-}
-}
-
-#endif
